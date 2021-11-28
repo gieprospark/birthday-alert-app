@@ -57,5 +57,46 @@ module.exports = {
     let send_is_true = moment().isAfter(dateToCheck)
 
     return {year_today, date_point_today, date_point_user, send_is_true}
+  },
+  batchData:async function(){
+    let users = []
+    let page = 0
+    let pages = 0
+    // find batch data
+    let fetch_batch = await db.Batch.findAll({
+      where: {
+        date_process: moment().format('Y-M-D'),
+      }
+    })
+
+    if(fetch_batch.length <= 0){
+      let data = {
+        batch:0,
+        date_process:moment().format('Y-M-D')
+      }
+      // Store batch data
+      await db.Batch.create(data)
+    }else{
+      let limit = 100;   // number of records per page
+      let offset = 0;
+      let resAccidents = await db.User.findAndCountAll({ offset: offset, limit: limit });
+      let batch = fetch_batch[0].batch
+      page = (batch + 1);      // page number
+      pages = Math.ceil(resAccidents.count / limit);
+      offset = limit * (page - 1);
+
+      users = await db.User.findAll({
+        limit: limit,
+        offset: offset
+      })
+
+      const new_batch = await db.Batch.findByPk(fetch_batch[0].id)
+      if(page < pages){
+        new_batch.update({ batch:page})
+      }else{
+        new_batch.update({ batch:0})
+      }
+    }
+    return users
   }
 }

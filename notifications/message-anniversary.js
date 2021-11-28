@@ -3,7 +3,7 @@ const db = require("../models")
 module.exports = {
   sendNotification: async function () {
     // Fetch all user
-    const users = await db.User.findAll()
+    const users = await helper.batchData()
     // Run each user
     users.forEach(async (user) => {
       const type = 'anniversary' //Type for differenciate event
